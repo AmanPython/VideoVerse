@@ -9,6 +9,7 @@ from itsdangerous import URLSafeTimedSerializer, BadSignature, SignatureExpired
 import os
 from rest_framework.permissions import AllowAny 
 from django.conf import settings
+from .tasks import trim_video_task, merge_videos_task
 
 class DownloadVideoView(views.APIView):
 
@@ -76,7 +77,7 @@ class VideoUploadView(views.APIView):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 class TrimVideoView(views.APIView):
-
+    @swagger_auto_schema(request_body=VideoSerializer, responses={202: 'Accepted'})
     def post(self, request, pk):
         start = request.data.get('start')
         end = request.data.get('end')
@@ -90,40 +91,18 @@ class TrimVideoView(views.APIView):
         except ValueError:
             return Response({'error': 'Invalid start or end time format.'}, status=status.HTTP_400_BAD_REQUEST)
 
-        video = Video.objects.get(pk=pk)
-        clip = VideoFileClip(video.video_file.path)
-        trimmed_clip = clip.subclip(start, end)
-        upload_to = video.video_file.field.upload_to
-        output_filename = f'trimmed_{os.path.basename(video.video_file.name)}'
-        output_path = os.path.join(settings.MEDIA_ROOT, upload_to, output_filename)
-
-        trimmed_clip.write_videofile(output_path)
-        trimmed_clip.close()
-
-        trimmed_video = Video(video_file=os.path.join(upload_to, output_filename), is_trimmed=True)
-        trimmed_video.save()
-
-        return Response({'message': 'Video trimmed', 'file': output_filename, 'id': trimmed_video.id}, status=status.HTTP_200_OK)
-
+        task = trim_video_task.delay(pk, start, end)
+        return Response({'message': 'Video trim task started', 'task_id': task.id}, status=status.HTTP_202_ACCEPTED)
 
 class MergeVideosView(views.APIView):
-
+    @swagger_auto_schema(request_body=VideoSerializer, responses={202: 'Accepted'})
     def post(self, request):
         ids = request.data.get('video_ids')
-        clips = [VideoFileClip(Video.objects.get(pk=id).video_file.path) for id in ids]
-        final_clip = concatenate_videoclips(clips)
-        upload_to = Video._meta.get_field('video_file').upload_to
-        output_filename = 'merged_video.mp4'
-        output_path = os.path.join(settings.MEDIA_ROOT, upload_to, output_filename)
+        if not ids:
+            return Response({'error': 'Video IDs must be provided.'}, status=status.HTTP_400_BAD_REQUEST)
 
-        final_clip.write_videofile(output_path)
-        final_clip.close()
-
-        merged_video = Video(video_file=os.path.join(upload_to, output_filename), is_merged=True)
-        merged_video.save()
-
-        return Response({'message': 'Videos merged', 'file': output_filename, 'id': merged_video.id}, status=status.HTTP_200_OK)
-
+        task = merge_videos_task.delay(ids)
+        return Response({'message': 'Video merge task started', 'task_id': task.id}, status=status.HTTP_202_ACCEPTED)
 class ShareLinkView(views.APIView):
 
     def get(self, request, pk):
