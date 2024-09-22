@@ -15,30 +15,30 @@ class VideoSerializer(serializers.ModelSerializer):
     def get_file_size(self, obj):
         return obj.video_file.size
 
-    def validate_video_file(self, value):
-        # Define the minimum and maximum file size in bytes
-        min_size = 5 * 1024 * 1024  # 5 MB
-        max_size = 25 * 1024 * 1024  # 25 MB
+    # def validate_video_file(self, value):
+    #     # Define the minimum and maximum file size in bytes
+    #     min_size = 5 * 1024 * 1024  # 5 MB
+    #     max_size = 25 * 1024 * 1024  # 25 MB
 
-        # Check file size
-        if value.size < min_size:
-            raise serializers.ValidationError("Video size must be at least 5MB")
-        if value.size > max_size:
-            raise serializers.ValidationError("Video size must not exceed 25MB")
+    #     # Check file size
+    #     if value.size < min_size:
+    #         raise serializers.ValidationError("Video size must be at least 5MB")
+    #     if value.size > max_size:
+    #         raise serializers.ValidationError("Video size must not exceed 25MB")
 
-        # Check duration using moviepy
-        video = VideoFileClip(value.temporary_file_path())
-        duration = video.duration
-        video.close()
+    #     # Check duration using moviepy
+    #     video = VideoFileClip(value.temporary_file_path())
+    #     duration = video.duration
+    #     video.close()
 
-        # Define the minimum and maximum duration in seconds
-        min_duration = 5
-        max_duration = 25
+    #     # Define the minimum and maximum duration in seconds
+    #     min_duration = 5
+    #     max_duration = 25
 
-        if duration < min_duration or duration > max_duration:
-            raise serializers.ValidationError(f"Video must be between {min_duration} and {max_duration} seconds long")
+    #     if duration < min_duration or duration > max_duration:
+    #         raise serializers.ValidationError(f"Video must be between {min_duration} and {max_duration} seconds long")
 
-        return value
+    #     return value
 
     def validate(self, attrs):
         # If title is missing or blank, set it to the default value based on the file name
