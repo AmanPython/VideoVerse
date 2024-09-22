@@ -10,9 +10,9 @@ import os
 from rest_framework.permissions import AllowAny 
 from django.conf import settings
 from .tasks import trim_video_task, merge_videos_task
+from .utils import generate_unique_filename
 
 class DownloadVideoView(views.APIView):
-
     def get(self, request, pk, token):
         serializer = URLSafeTimedSerializer('SECRET_KEY')
         try:
@@ -25,7 +25,7 @@ class DownloadVideoView(views.APIView):
         video = Video.objects.get(pk=pk)
         file_handle = video.video_file.open()
         response = StreamingHttpResponse(file_handle, content_type='video/mp4')
-        response['Content-Disposition'] = 'inline; filename="{}"'.format(video.video_file.name)
+        response['Content-Disposition'] = f'inline; filename="{os.path.basename(video.video_file.name)}"'
         return response
 
 class StreamVideoView(views.APIView):
@@ -42,7 +42,7 @@ class StreamVideoView(views.APIView):
         video = Video.objects.get(pk=pk)
         file_handle = video.video_file.open()
         response = FileResponse(file_handle, content_type='video/mp4')
-        response['Content-Disposition'] = f'inline; filename="{video.video_file.name}"'
+        response['Content-Disposition'] = f'inline; filename="{os.path.basename(video.video_file.name)}"'
         return response
 
 class VideoListView(views.APIView):
@@ -72,8 +72,21 @@ class VideoUploadView(views.APIView):
     def post(self, request):
         serializer = VideoSerializer(data=request.data)
         if serializer.is_valid(raise_exception=True):
-            serializer.save()
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
+            video = serializer.save()
+            
+            # Generate a unique filename
+            original_filename = os.path.basename(video.video_file.name)
+            unique_filename = generate_unique_filename(original_filename, video.id)
+            
+            # Rename the file
+            new_path = os.path.join(os.path.dirname(video.video_file.path), unique_filename)
+            os.rename(video.video_file.path, new_path)
+            
+            # Update the video object with the new filename
+            video.video_file.name = os.path.join(os.path.dirname(video.video_file.name), unique_filename)
+            video.save()
+            
+            return Response(VideoSerializer(video).data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 class TrimVideoView(views.APIView):
@@ -94,6 +107,7 @@ class TrimVideoView(views.APIView):
         task = trim_video_task.delay(pk, start, end)
         return Response({'message': 'Video trim task started', 'task_id': task.id}, status=status.HTTP_202_ACCEPTED)
 
+
 class MergeVideosView(views.APIView):
     @swagger_auto_schema(request_body=VideoSerializer, responses={202: 'Accepted'})
     def post(self, request):
@@ -103,6 +117,7 @@ class MergeVideosView(views.APIView):
 
         task = merge_videos_task.delay(ids)
         return Response({'message': 'Video merge task started', 'task_id': task.id}, status=status.HTTP_202_ACCEPTED)
+
 class ShareLinkView(views.APIView):
 
     def get(self, request, pk):

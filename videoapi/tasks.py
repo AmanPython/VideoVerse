@@ -3,6 +3,8 @@ from moviepy.editor import VideoFileClip, concatenate_videoclips
 from .models import Video
 from django.conf import settings
 import os
+from .utils import generate_unique_filename
+
 
 @shared_task
 def trim_video_task(video_id, start, end):
@@ -10,7 +12,8 @@ def trim_video_task(video_id, start, end):
     clip = VideoFileClip(video.video_file.path)
     trimmed_clip = clip.subclip(start, end)
     upload_to = video.video_file.field.upload_to
-    output_filename = f'trimmed_{os.path.basename(video.video_file.name)}'
+    original_filename = os.path.basename(video.video_file.name)
+    output_filename = generate_unique_filename(f'trimmed_{original_filename}', video_id)
     output_path = os.path.join(settings.MEDIA_ROOT, upload_to, output_filename)
 
     trimmed_clip.write_videofile(output_path)
@@ -26,7 +29,7 @@ def merge_videos_task(video_ids):
     clips = [VideoFileClip(Video.objects.get(pk=id).video_file.path) for id in video_ids]
     final_clip = concatenate_videoclips(clips)
     upload_to = Video._meta.get_field('video_file').upload_to
-    output_filename = 'merged_video.mp4'
+    output_filename = generate_unique_filename('merged_video.mp4', '_'.join(map(str, video_ids)))
     output_path = os.path.join(settings.MEDIA_ROOT, upload_to, output_filename)
 
     final_clip.write_videofile(output_path)
