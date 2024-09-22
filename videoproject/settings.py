@@ -43,7 +43,8 @@ INSTALLED_APPS = [
     'videoapi',
     'corsheaders',
     'accounts',
-    'drf_yasg'
+    'drf_yasg',
+    'django_celery_beat'
 ]
 
 MIDDLEWARE = [
@@ -154,4 +155,11 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 MEDIA_URL = '/media/'
 
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+
+CELERY_BROKER_URL = 'redis://localhost:6379/0'
+CELERY_RESULT_BACKEND = 'redis://localhost:6379/0'
+CELERY_ACCEPT_CONTENT = ['json']
+CELERY_TASK_SERIALIZER = 'json'
+CELERY_RESULT_SERIALIZER = 'json'
+CELERY_TIMEZONE = 'UTC'
 
