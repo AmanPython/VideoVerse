@@ -1,0 +1,50 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Python Debugger: Django",
+            "type": "debugpy",
+            "request": "launch",
+            "args": [
+                // "runserver",
+                // "0.0.0.0:8000"
+                "test"
+            ],
+            "django": true,
+            "autoStartBrowser": false,
+            "program": "${workspaceFolder}/manage.py",
+            "justMyCode": false,
+            "pythonPath": "${workspaceFolder}/videoproject_venv/bin/python"
+        },
+        {
+            "name": "Python Debugger: Celery Worker",
+            "type": "python",
+            "request": "launch",
+            "program": "${workspaceFolder}/videoproject_venv/bin/celery",
+            "args": [
+                "-A",
+                "videoproject",
+                "worker",
+                "--loglevel=info"
+            ],
+            "console": "integratedTerminal",
+            "justMyCode": false,
+            "pythonPath": "${workspaceFolder}/videoproject_venv/bin/python"
+        },
+        {
+            "name": "Python Debugger: Celery Beat",
+            "type": "python",
+            "request": "launch",
+            "program": "${workspaceFolder}/videoproject_venv/bin/celery",
+            "args": [
+                "-A",
+                "videoproject",
+                "beat",
+                "--loglevel=info"
+            ],
+            "console": "integratedTerminal",
+            "justMyCode": false,
+            "pythonPath": "${workspaceFolder}/videoproject_venv/bin/python"
+        }
+    ]
+}
