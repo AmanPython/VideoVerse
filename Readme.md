@@ -1,96 +1,97 @@
-# VideoProject
+# VideoProject Documentation
 
 ## Project Overview
 
-VideoProject is a backend service that provides REST APIs for handling video files, including uploading, trimming, merging, and generating shareable links with expiration. The project is built using Django and Django REST framework and utilizes Celery for asynchronous task processing and Redis as a message broker. This project follows best practices for API design, exception handling, and code quality, with comprehensive API documentation available through Swagger.
+VideoProject is a robust backend service crafted using Django and Django REST framework, designed to manage video files through a range of functionalities including uploading, trimming, merging, and generating shareable links with expiration settings. It leverages Celery for asynchronous tasks and Redis for message queuing. Adhering to best practices in API development, error handling, and code quality, it provides comprehensive API documentation accessible via Swagger.
 
-## Features
+- [Frontend Repository](https://github.com/AmanPython/Frontend)
 
-1. **Authenticated API Calls**: All API requests are authenticated using static API tokens.
-2. **Video Upload**: Users can upload video files with configurable limits on file size and duration.
-3. **Video Trimming**: Trim videos from the start or end based on user specifications.
-4. **Video Merging**: Merge multiple video clips into a single file.
-5. **Link Sharing with Expiry**: Generate shareable links with time-based expiry.
-6. **Testing**: Unit and end-to-end tests ensure the robustness of the application.
-7. **API Documentation**: Available through Swagger UI.
+## Key Features
 
-## Requirements
+1. **Authenticated API Calls**: Utilizes static API tokens for authentication.
+2. **Video Upload**: Supports file uploads with limits on size and duration.
+3. **Video Trimming**: Offers video trimming from the beginning or end.
+4. **Video Merging**: Allows merging of multiple video clips into one.
+5. **Link Sharing with Expiry**: Creates shareable links that expire over time.
+6. **Testing**: Implements unit and end-to-end testing to verify system integrity.
+   ```bash
+   git fetch
+   git checkout -b testing origin/testing
+   python manage.py test
+   ```
+7. **API Documentation**: Available via Swagger UI.
+
+## System Requirements
 
 - Python 3.12.3
 - Django 5.1.1
 - SQLite (Database)
-- Redis (For Celery message broker)
+- Redis (Message broker for Celery)
 - Celery (Task queue)
 - Django REST Framework
-- drf-yasg (for API documentation)
+- drf-yasg (For API documentation)
 
-## Project Setup Documentation
+## Project Setup
 
-### 1. Setting Up Python and Virtual Environment
+### Python and Virtual Environment
 
-Set up a virtual environment to isolate dependencies.
+Initialize a virtual environment to manage package dependencies separately.
 
 ```bash
-# Create a virtual environment
+# Creating a virtual environment
 python -m venv videoproject_venv
-# or
-python3 -m venv videoproject_venv
-
-# Activate the virtual environment
+# Activating the virtual environment
 source videoproject_venv/bin/activate
 ```
 
-### 2. Install Required Packages
+### Dependencies Installation
 
-Install Django and other required packages listed in the `requirements.txt` file.
+Install Django and necessary libraries from the `requirements.txt`.
 
 ```bash
 pip install -r requirements.txt
 ```
 
-### 3. Initialize the Database
+### Database Initialization
 
-Run initial migrations to set up the database schema.
+Execute migrations to configure the database schema.
 
 ```bash
 python manage.py migrate
 ```
 
-### Running Tests
+### Testing the Application
 
-To run all test cases:
+Run the test suite to ensure everything is functioning correctly.
 
 ```bash
 python manage.py test
 ```
 
-### Running the API Server
+### Launching the API Server
 
-Start the API server:
+Deploy the local development server:
 
 ```bash
 python manage.py runserver
 ```
 
-This command starts a lightweight development web server on the local machine. You can access it at [http://127.0.0.1:8000/](http://127.0.0.1:8000/).
+Access the server at [http://127.0.0.1:8000/](http://127.0.0.1:8000/).
 
-### Running Celery and Celery-beat
+### Configuring Celery
 
-Start Celery worker:
+Initialize Celery worker and scheduler:
 
 ```bash
+# Worker
 celery -A videoproject worker --loglevel=info
-```
-
-Start Celery beat scheduler:
-
-```bash
+# Scheduler
 celery -A videoproject beat --loglevel=info
 ```
 
-### Redis Setup
+### Redis Configuration
 
-Redis is used as a message broker for Celery tasks.
+Set up Redis to manage Celery tasks:
 
 1. Install Redis:
 
@@ -99,58 +100,32 @@ Redis is used as a message broker for Celery tasks.
     sudo apt install redis-server
     ```
 
-2. Start Redis:
+2. Start and verify Redis service:
 
     ```bash
     sudo systemctl start redis.service
-    sudo systemctl status redis  # Check Redis status
+    sudo systemctl status redis
     ```
 
-### Viewing API Documentation
+### API Documentation Access
 
-If you have set up Swagger or Redoc with drf-yasg, you can view the API documentation by visiting:
+View the API documentation hosted locally:
 
 - **Swagger UI**: [http://127.0.0.1:8000/swagger/](http://127.0.0.1:8000/swagger/)
 - **Redoc**: [http://127.0.0.1:8000/redoc/](http://127.0.0.1:8000/redoc/)
 
-### 3rd Party APIs
+### Third-Party Integrations
 
-- **JWT Authentication**: Refer to the [JWT Authentication documentation](https://django-rest-framework-simplejwt.readthedocs.io/en/latest/).
-- **Swagger Documentation Integration**: For integrating Swagger with Django, see the [drf-yasg integration guide](https://django-rest-framework-simplejwt.readthedocs.io/en/latest/drf_yasg_integration.html).
-
-## Assumptions and Choices
-
-- **Static API Tokens**: For simplicity, static API tokens are used for authentication instead of OAuth.
-https://github.com/AmanPython/VideoVerse/blob/bd168c0b14f6be01e8aeab3175ffb7e0d67bec48/videoproject/settings.py#L69-L82
-
-- **File Size and Duration Limits**: Configurable limits were set to ensure that server resources are managed effectively.
-https://github.com/AmanPython/VideoVerse/blob/bd168c0b14f6be01e8aeab3175ffb7e0d67bec48/videoapi/serializers.py#L18-L41
-
-- **SQLite Database**: 
-https://github.com/AmanPython/VideoVerse/blob/bd168c0b14f6be01e8aeab3175ffb7e0d67bec48/videoproject/settings.py#L103-L112
-
-- **Error Handling**: Thorough error handling with descriptive messages to guide users in correcting their requests.
-
-## Submission Guidelines
-
-- Ensure the repository has a clear commit history reflecting the development process.
-- The README should provide setup commands, test suite execution instructions, and commands to run the API server.
-
-## References
-
-- [Django REST Framework Documentation](https://www.django-rest-framework.org/)
-- [Celery Documentation](https://docs.celeryq.dev/en/stable/)
-- [Redis Documentation](https://redis.io/documentation)
-
-For any questions or issues, please refer to the documentation links or raise an issue in the repository.
+- **JWT Authentication**: [JWT Authentication documentation](https://django-rest-framework-simplejwt.readthedocs.io/en/latest/).
+- **Swagger Documentation**: [drf-yasg integration guide](https://django-rest-framework-simplejwt.readthedocs.io/en/latest/drf_yasg_integration.html).
 
 
+## Reference Material
 
- #### Authenticated API Calls  
- 
- #### Video Upload 
- #### Video Trimming  
- #### Video Merging 
- #### Link Sharing with Expiry 
- #### Testing 
- #### API Documentation
+- [Django REST Framework](https://www.django-rest-framework.org/)
+- [Celery](https://docs.celeryq.dev/en/stable/)
+- [Redis](https://redis.io/documentation)
+- [Pillow](https://pillow.readthedocs.io/en/stable/)
+- [Imageio-ffmpeg](https://ffmpeg.org/)
+- [Imageio](https://imageio.readthedocs.io/en/stable/)
+- [MoviePy](https://zulko.github.io/moviepy/)
